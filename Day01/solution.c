@@ -14,21 +14,43 @@ int main(void) {
         perror("Error opening input.txt");
         return 1;
     }
-    
+    int count = 0;
+    int count_of_second_task = 0;
+    int remeinder = 50;
     // Read and process input
     while (fgets(line, MAX_LINE_LENGTH, fp) != NULL) {
         // Remove newline character
         line[strcspn(line, "\n")] = 0;
         
-        // TODO: Process each line
-        printf("%s\n", line);
+        //split the first character and cast the rest to integer
+        char direction = line[0];
+        int value = atoi(&line[1]);
+        if (direction == 'R') {
+
+            while (remeinder + value >= 100) {
+                count_of_second_task++;
+                value -= 100;
+            }
+            remeinder = (remeinder + value) % 100;
+
+        } else {
+            while (remeinder - value < 0) {
+                count_of_second_task++;
+                value -= 100;
+            }
+            remeinder = (remeinder - value + 100) % 100;
+        }
+        if (remeinder == 0) {
+            count++;
+            count_of_second_task ++;
+        }
     }
-    
+
     fclose(fp);
-    
-    // TODO: Implement solution
-    printf("Part 1: %d\n", 0);
-    printf("Part 2: %d\n", 0);
+
+    printf("Part 1: %d\n", count);
+    printf("Part 2: %d\n", count_of_second_task);
+
     
     return 0;
 }
