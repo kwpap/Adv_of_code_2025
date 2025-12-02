@@ -1,0 +1,17 @@
+# Compiled binaries
+*/solution
+!*/solution.c
+!*/solution.tcl
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
