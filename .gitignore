@@ -3,6 +3,11 @@
 !*/solution.c
 !*/solution.tcl
 
+# Local gcc/clang outputs and demos
+o
+demo
+a.out
+
 # Editor files
 *.swp
 *.swo
