@@ -9,7 +9,7 @@ int main(void) {
     char line[MAX_LINE_LENGTH];
     
     // Open input file
-    fp = fopen("input.txt", "r");
+    fp = fopen("demo.txt", "r");
     if (fp == NULL) {
         perror("Error opening input.txt");
         return 1;
@@ -28,7 +28,6 @@ int main(void) {
     
     // TODO: Implement solution
     printf("Part 1: %d\n", 0);
-    printf("Part 2: %d\n", 0);
     
     return 0;
 }
