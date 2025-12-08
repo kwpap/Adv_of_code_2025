@@ -64,6 +64,17 @@ void print_list(LinkedList* list) {
     }
     printf("NULL\n");
 }
+// Print the list (just to verify)
+void print_list_with_limit(LinkedList* list, int limit) {
+    Node* current = list->head;
+    int count = 0;
+    while (current != NULL && count < limit) {
+        printf("%lld -> ", current->data);
+        current = current->next;
+        count++;
+    }
+    printf("NULL\n");
+}
 
 // Sort the list using Bubble Sort (inefficient but simple)
 void sort_list(LinkedList* list) {
@@ -84,6 +95,27 @@ void sort_list(LinkedList* list) {
             current = current->next;
         }
     } while (swapped);
+}
+
+void remove_doublicates_and_sort(LinkedList* list) {
+    // First, sort the list
+    sort_list(list);
+
+    // Then, remove duplicates
+    Node* current = list->head;
+    while (current != NULL && current->next != NULL) {
+        if (current->data == current->next->data) {
+            // Duplicate found; remove it
+            Node* temp = current->next;
+            current->next = current->next->next;
+            free(temp);
+            if (current->next == NULL) {
+                list->tail = current; // Update tail if we removed the last element
+            }
+        } else {
+            current = current->next; // Move to next node only if no deletion
+        }
+    }
 }
 
 
@@ -111,22 +143,31 @@ int find_digits(long long number) {
     return digits;
 }
 
+long long number_sequence_repeater(long long number, int times) {
+    long long result = 0;
+    int digits = find_digits(number);
+    for (int i = 0; i < times; i++) {
+        result = result * power(10, digits) + number;
+    }
+    return result;
+}
+
 int main(void) {
     FILE *fp;
-    char line[MAX_LINE_LENGTH];
     
     // Open input file
-    fp = fopen("demo.txt", "r");
+    fp = fopen("input.txt", "r");
     if (fp == NULL) {
         perror("Error opening input.txt");
         return 1;
     }
-    long long ranges[100][2];
-    ranges[0][0] = 0;
+
     long long max = 0;
-    
-char c;
-int index = 0;
+    char c;
+    int index = 0;
+    LinkedList* lower_bounds = create_list();
+    LinkedList* upper_bounds = create_list();
+    long long current_number = 0;
 
     // Loop through every single character in the file
     while ((c = fgetc(fp)) != EOF) {
@@ -134,67 +175,118 @@ int index = 0;
         
         // If it is a number, print it (or store it in a buffer)
         if (isdigit(c)) {
-            ranges[index / 2][index % 2] = ranges[index / 2][index % 2] * 10 + (c - '0');
-            
+            current_number = current_number * 10 + (c - '0');
         } 
         // If it is a separator, print a newline to show we finished that number
         else if (c == ',' || c == '-' || c == '\n') {
             if (index % 2 == 1) {
-                max = (ranges[index / 2][1] > max) ? ranges[index / 2][1] : max;
+                append(upper_bounds, current_number);
+            } else {
+                append(lower_bounds, current_number);
             }
+            max = current_number > max ? current_number : max;
             index++;
-            ranges[index / 2][index % 2] = 0;
+            current_number = 0;
         }
     }
-    for (int i = 0; i < index / 2; i++) {
-        printf("Range %d: %lld - %lld\n", i + 1, ranges[i][0], ranges[i][1]);
-    }
-    printf("Max value found: %lld\n", max);
+    sort_list(lower_bounds);
+    sort_list(upper_bounds);
+    // printf("the lower bound numbers are:\n");
+    // print_list(lower_bounds);
+    // printf("the upper bound numbers are:\n");
+    //print_list(upper_bounds);
+
 
     // Let's generate the invalid ids.
 
     LinkedList* invalid_ids = create_list();
     // find the number of digits of max
     int digits = find_digits(max);
-    long long  max_number_to_check = digits % 2 == 0 ? max / power(10, digits/2)  : max / power(10, digits/2 + 1);
-    long long temp = 0;
-    printf("Max number to check: %lld\n", max_number_to_check);
-    for (long long i = 0 ; i <= max_number_to_check; i++) {
+    long long  max_number_to_check =  max / power(10, digits/2);
+    //printf("Max number to check: %lld\n", max_number_to_check);
+    for (long long i = 1 ; i <= max_number_to_check; i++) {
         append(invalid_ids, i+ i * power(10, find_digits(i)));
     }
 
-    long long a[200][2];
-    for (int i = 0; i < index ; i++) {
-        a[i][0] = ranges[i/2][i%2];
-        a[i][1] = 0;
-    }
+    long long final_solution = 0;
+    int multiplier = 0;
+    Node* current_invalid = invalid_ids->head;
+    Node* current_lower = lower_bounds->head;
+    Node* current_upper = upper_bounds->head;
 
-    for (int i = 0; i < index - 1; i++) {
-        for (int j = 0; j < index - i - 1; j++) {
-            if (a[j][0] > a[j + 1][0]) {
-                long long temp = a[j][0];
-                a[j][0] = a[j + 1][0];
-                a[j + 1][0] = temp;
+    while (current_invalid != NULL) {
+        //printf("Checking invalid id %lld\n", current_invalid->data);
+        while (current_lower != NULL && current_invalid->data >= current_lower-> data ){
+            current_lower = current_lower->next;
+            multiplier++;
+            //printf("Incrementing lower bound pointer to %lld, multiplier is now %d\n", current_lower != NULL ? current_lower->data : -1, multiplier);
+        }
+        while (current_upper != NULL && current_invalid->data > current_upper->data) {
+            current_upper = current_upper->next;
+            multiplier--;
+            //printf("Incrementing upper bound pointer to %lld and multiplier become %d\n",  current_upper != NULL ? current_upper->data : -1, multiplier);
+        }
+        final_solution += multiplier*current_invalid->data;
+        if (multiplier > 0) {
+        //printf("Adding %lld * %d to final solution, now %lld\n", current_invalid->data, multiplier, final_solution);
+
+        }
+               current_invalid = current_invalid->next;
+       }
+    printf("Part 1: %lld\n", final_solution);
+
+    //Let's expand the invalid list id to include any number occuring by concatinating a number with itself 2 or more times.
+       LinkedList* expanded_invalid_ids = create_list();
+
+    int max_digits = find_digits(max);
+    for (int i = 1; i< max_number_to_check; i++) {
+        //printf("Expanding invalid id %d\n", i);
+        for (int repeat = 2; repeat * find_digits(i) <= max_digits; repeat++) {
+            long long new_invalid = number_sequence_repeater(i, repeat);
+            if (new_invalid > max) {
+                break;
             }
+            append(expanded_invalid_ids, new_invalid);
+            //printf("Adding expanded invalid id %lld\n", new_invalid);
         }
     }
-    Node *nod = invalid_ids->head;
-    long long number_of_invalid_ids_till_that_point = 0;
-    for (int i = 0; i < index; i++) {
-        while (nod != NULL && nod->data <= a[i][0]) {
-            number_of_invalid_ids_till_that_point++;
-            nod = nod->next;
-        }
-        a[i][1] = number_of_invalid_ids_till_that_point;
-    }
+    remove_doublicates_and_sort(expanded_invalid_ids);
+    //printf("The expanded invalid ids are:\n");
+    //print_list_with_limit(expanded_invalid_ids, 20);
+    
+    long long final_solution_2 = 0;
+    multiplier = 0;
+    current_invalid = expanded_invalid_ids->head;
+    current_lower = lower_bounds->head;
+    current_upper = upper_bounds->head;
 
-    for(int i = 0; i < index; i++) {
-        printf("Range start: %lld, Invalid IDs till that point: %lld\n", a[i][0], a[i][1]);
-    }
+    while (current_invalid != NULL) {
+        //printf("Checking invalid id %lld\n", current_invalid->data);
+        while (current_lower != NULL && current_invalid->data >= current_lower-> data ){
+            current_lower = current_lower->next;
+            multiplier++;
+            //printf("Incrementing lower bound pointer to %lld, multiplier is now %d\n", current_lower != NULL ? current_lower->data : -1, multiplier);
+        }
+        while (current_upper != NULL && current_invalid->data > current_upper->data) {
+            current_upper = current_upper->next;
+            multiplier--;
+            //printf("Incrementing upper bound pointer to %lld and multiplier become %d\n",  current_upper != NULL ? current_upper->data : -1, multiplier);
+        }
+        final_solution_2 += multiplier*current_invalid->data;
+        if (multiplier > 0) {
+        printf("Adding %lld * %d to final solution, now %lld\n", current_invalid->data, multiplier, final_solution_2);
+
+        }
+               current_invalid = current_invalid->next;
+       }
+    printf("Part 2: %lld\n", final_solution_2);
+
+
+
 
     
     fclose(fp);
-    printf("Part 1: %d\n", 0);
+    //printf("Part 1: %d\n", 0);
     
     return 0;
 }
