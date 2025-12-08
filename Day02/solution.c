@@ -5,9 +5,17 @@
 
 #define MAX_LINE_LENGTH 4096
 
+long long power(long long base, int exp) {
+    long long result = 1;
+    for (int i = 0; i < exp; i++) {
+        result *= base;
+    }
+    return result;
+}
+
 // 1. The Node (The individual link)
 typedef struct Node {
-    int data;
+    long long data;
     struct Node* next;
 } Node;
 
@@ -29,7 +37,7 @@ LinkedList* create_list() {
 }
 
 // Add to the back (The specific feature you asked for)
-void append(LinkedList* list, int value) {
+void append(LinkedList* list, long long value) {
     // Create the new node
     Node* newNode = (Node*)malloc(sizeof(Node));
     newNode->data = value;
@@ -51,10 +59,31 @@ void append(LinkedList* list, int value) {
 void print_list(LinkedList* list) {
     Node* current = list->head;
     while (current != NULL) {
-        printf("%d -> ", current->data);
+        printf("%lld -> ", current->data);
         current = current->next;
     }
     printf("NULL\n");
+}
+
+// Sort the list using Bubble Sort (inefficient but simple)
+void sort_list(LinkedList* list) {
+    if (list->head == NULL) return; // Empty list
+
+    int swapped;
+    do {
+        swapped = 0;
+        Node* current = list->head;
+        while (current->next != NULL) {
+            if (current->data > current->next->data) {
+                // Swap data
+                long long temp = current->data;
+                current->data = current->next->data;
+                current->next->data = temp;
+                swapped = 1;
+            }
+            current = current->next;
+        }
+    } while (swapped);
 }
 
 
@@ -87,7 +116,7 @@ int main(void) {
     char line[MAX_LINE_LENGTH];
     
     // Open input file
-    fp = fopen("input.txt", "r");
+    fp = fopen("demo.txt", "r");
     if (fp == NULL) {
         perror("Error opening input.txt");
         return 1;
@@ -127,13 +156,42 @@ int index = 0;
     LinkedList* invalid_ids = create_list();
     // find the number of digits of max
     int digits = find_digits(max);
-    long long max_number_to_check = digits % 2 == 0 ? max / 10^digits : max / 10^(digits + 1);
+    long long  max_number_to_check = digits % 2 == 0 ? max / power(10, digits/2)  : max / power(10, digits/2 + 1);
     long long temp = 0;
-    for (int i = 0 ; i <= max_number_to_check; i++) {
-        
+    printf("Max number to check: %lld\n", max_number_to_check);
+    for (long long i = 0 ; i <= max_number_to_check; i++) {
+        append(invalid_ids, i+ i * power(10, find_digits(i)));
     }
-    
-    
+
+    long long a[200][2];
+    for (int i = 0; i < index ; i++) {
+        a[i][0] = ranges[i/2][i%2];
+        a[i][1] = 0;
+    }
+
+    for (int i = 0; i < index - 1; i++) {
+        for (int j = 0; j < index - i - 1; j++) {
+            if (a[j][0] > a[j + 1][0]) {
+                long long temp = a[j][0];
+                a[j][0] = a[j + 1][0];
+                a[j + 1][0] = temp;
+            }
+        }
+    }
+    Node *nod = invalid_ids->head;
+    long long number_of_invalid_ids_till_that_point = 0;
+    for (int i = 0; i < index; i++) {
+        while (nod != NULL && nod->data <= a[i][0]) {
+            number_of_invalid_ids_till_that_point++;
+            nod = nod->next;
+        }
+        a[i][1] = number_of_invalid_ids_till_that_point;
+    }
+
+    for(int i = 0; i < index; i++) {
+        printf("Range start: %lld, Invalid IDs till that point: %lld\n", a[i][0], a[i][1]);
+    }
+
     
     fclose(fp);
     printf("Part 1: %d\n", 0);
