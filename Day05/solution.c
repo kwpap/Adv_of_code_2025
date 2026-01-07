@@ -4,6 +4,8 @@
 
 #define MAX_LINE_LENGTH 1024
 
+//define a simple linked 
+
 int main(void) {
     FILE *fp;
     char line[MAX_LINE_LENGTH];

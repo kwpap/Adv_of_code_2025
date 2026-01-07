@@ -12,8 +12,8 @@ proc read_input {filename} {
 proc solve {} {
     set lines [read_input "input.txt"]
     
-    # TODO: Process input
     foreach line $lines {
+        
         puts $line
     }
     
